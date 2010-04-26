@@ -18,7 +18,6 @@ require 'rails'
 # <tt>gem "ripple", :require_as => ["ripple", "ripple/railtie"]</tt>
 module Ripple
   class Railtie < Rails::Railtie
-    railtie_name :ripple
     
     initializer "ripple.configure_rails_initialization" do
       Ripple.load_configuration

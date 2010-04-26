@@ -88,6 +88,13 @@ describe Ripple::Document::Associations::OneEmbeddedProxy do
     @gchild._parent_document.should == @child
   end
   
+  it "should not add validations to the parent object twice" do
+    @parent.child = @child
+    @child.gchild = @gchild
+    attrs = @parent.class.validators.map(&:attributes).flatten
+    attrs.uniq.should == attrs
+  end
+  
   describe "callbacks" do
     before :each do
       $pinger = mock("callback verifier")
