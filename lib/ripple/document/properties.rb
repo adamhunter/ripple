@@ -35,6 +35,11 @@ module Ripple
         prop = Property.new(key, type, options)
         properties[prop.key] = prop
       end
+      
+      def key(key_name, type, options={})
+        property key_name, type, options.merge(:presence => true)
+        before_save lambda { |doc| doc.key = doc.send(key_name) }
+      end
     end
 
     # Encapsulates a single property on your Ripple::Document class.

@@ -34,6 +34,20 @@ describe Ripple::Document::Properties do
     Email.properties[:foo] = "bar"
     class Forward < Email; end
     Forward.properties[:foo].should == "bar"
+    Email.properties.delete(:foo) # cleanup
+  end
+  
+  it "should allow specifying a property to be used as a key" do
+    Email.key :from, String
+    @email = Email.new
+    @email.from = 'adamhunter@me.com'
+    @email.run_callbacks(:save)
+    @email.key.should == 'adamhunter@me.com'
+  end
+  
+  it "should add the presence validator to the property the represents the key" do
+    Email.key :from, String
+    Email.validators.map(&:attributes).flatten.should include(:from)
   end
 
 end
