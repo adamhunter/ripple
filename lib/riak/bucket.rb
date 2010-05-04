@@ -64,9 +64,21 @@ module Riak
     # @return [Array<String>] Keys in this bucket
     def keys(options={})
       if block_given?
-        @client.http.get(200, @client.prefix, escape(name), {:props => false}, {}) do |chunk|
-          obj = ActiveSupport::JSON.decode(chunk) rescue {}
-          yield obj['keys'].map {|k| URI.unescape(k) } if obj['keys']
+        # A chunked response doesn't guarantee to be sent along logical json hashes
+        # The response will have to be downloaded and recompiled to ensure all key
+        # payloads are accounted for
+        # @client.http.get(200, @client.prefix, escape(name), {:props => false, :keys => :stream}, {}) do |chunk|
+        #   obj = ActiveSupport::JSON.decode(chunk) rescue {}
+        #   yield obj['keys'].map {|k| URI.unescape(k) } if obj['keys']
+        # end
+        payload = ''
+        response = @client.http.get(200, @client.prefix, escape(name), {:props => false, :keys => :stream}, {}) do |chunk|
+          payload += chunk
+          if payload.last(2) == ']}'
+            object  = ActiveSupport::JSON.decode(payload) rescue {}
+            payload = ''
+            yield object['keys'].map {|k| URI.unescape(k) } if object['keys']
+          end
         end
       elsif @keys.nil? || options[:reload]
         response = @client.http.get(200, @client.prefix, escape(name), {:props => false}, {})
